@@ -5,7 +5,7 @@ project(open_gl_test)
 # Source files
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(SOURCES "${SRC_DIR}/main.cpp" src/shader.h src/camera.h
-        src/drawer.h src/drawer2.h src/drawer3.h src/render_video_opengl2.cpp)
+        src/drawer.h src/drawer2.h src/drawer3.h src/render_video_opengl2.h)
 set(LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libraries")
 
 # Executable definition and properties

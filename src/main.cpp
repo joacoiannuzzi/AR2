@@ -1,17 +1,18 @@
 //#include "main.h"
 
-#include "drawer3.h"
+//#include "drawer3.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/videoio.hpp>
 
 #include <opencv2/imgproc.hpp>
-//#include "pangolin_viewer/viewer.h"
 #include <openvslam/system.h>
 
 #include <openvslam/config.h>
 #include <numeric>
+
+#include "render_video_opengl2.h"
 
 
 void camera_tracking(const std::shared_ptr<openvslam::config> &cfg,
@@ -42,12 +43,14 @@ void camera_tracking(const std::shared_ptr<openvslam::config> &cfg,
 //            cv::CAP_FFMPEG
 //    );
 
-    auto window_width = video.get(cv::CAP_PROP_FRAME_WIDTH);
-    auto window_height = video.get(cv::CAP_PROP_FRAME_HEIGHT);
+    window_width = video.get(cv::CAP_PROP_FRAME_WIDTH);
+    window_height = video.get(cv::CAP_PROP_FRAME_HEIGHT);
     std::cout << "Video width: " << window_width << std::endl;
     std::cout << "Video height: " << window_height << std::endl;
 
-    Drawer3 drawer(window_width, window_height);
+//    Drawer3 drawer(window_width, window_height);
+    setup();
+
     std::cout << "LOG :: DRAWER INITIALIZED" << std::endl;
 
 
@@ -67,44 +70,44 @@ void camera_tracking(const std::shared_ptr<openvslam::config> &cfg,
     bool is_not_end = true;
     // run the SLAM in another thread
 //    std::thread thread([&]() {
-        while (is_not_end) {
-            // check if the termination of SLAM system is requested or not
-            if (SLAM.terminate_is_requested()) {
-                break;
-            }
+    while (is_not_end) {
+        // check if the termination of SLAM system is requested or not
+        if (SLAM.terminate_is_requested()) {
+            break;
+        }
 
-            is_not_end = video.read(frame);
-            is_not_end = is_not_end && !drawer.shouldWindowClose();
+        is_not_end = video.read(frame);
+        is_not_end = is_not_end && !shouldWindowClose();
 
-            if (frame.empty()) {
-                continue;
-            }
-            if (scale != 1.0) {
-                cv::resize(frame, frame, cv::Size(), scale, scale, cv::INTER_LINEAR);
-            }
+        if (frame.empty()) {
+            continue;
+        }
+        if (scale != 1.0) {
+            cv::resize(frame, frame, cv::Size(), scale, scale, cv::INTER_LINEAR);
+        }
 
-            const auto tp_1 = std::chrono::steady_clock::now();
+        const auto tp_1 = std::chrono::steady_clock::now();
 
-            // input the current currentFrame and estimate the camera pose
-            auto pose = SLAM.feed_monocular_frame(frame, timestamp, mask);
+        // input the current currentFrame and estimate the camera pose
+        auto pose = SLAM.feed_monocular_frame(frame, timestamp, mask);
 
 //            std::cout << "pose: " << pose << std::endl;
 
-            drawer.update(frame, pose);
+        update(frame, pose);
 
-            const auto tp_2 = std::chrono::steady_clock::now();
+        const auto tp_2 = std::chrono::steady_clock::now();
 
-            const auto track_time = std::chrono::duration_cast<std::chrono::duration<double>>(tp_2 - tp_1).count();
-            track_times.push_back(track_time);
+        const auto track_time = std::chrono::duration_cast<std::chrono::duration<double>>(tp_2 - tp_1).count();
+        track_times.push_back(track_time);
 
-            timestamp += 1.0 / cfg->camera_->fps_;
-            ++num_frame;
-        }
+        timestamp += 1.0 / cfg->camera_->fps_;
+        ++num_frame;
+    }
 
-        // wait until the loop BA is finished
-        while (SLAM.loop_BA_is_running()) {
-            std::this_thread::sleep_for(std::chrono::microseconds(5000));
-        }
+    // wait until the loop BA is finished
+    while (SLAM.loop_BA_is_running()) {
+        std::this_thread::sleep_for(std::chrono::microseconds(5000));
+    }
 //    });
 
     // run the viewer in the current thread
@@ -117,7 +120,7 @@ void camera_tracking(const std::shared_ptr<openvslam::config> &cfg,
     // shutdown the SLAM process
     SLAM.shutdown();
 
-    drawer.terminate();
+    terminate();
 
     if (!map_db_path.empty()) {
         // output the map database
@@ -131,7 +134,7 @@ void camera_tracking(const std::shared_ptr<openvslam::config> &cfg,
 }
 
 
-int nmain() {
+int main() {
 
     std::cout << "hello world" << std::endl;
 
