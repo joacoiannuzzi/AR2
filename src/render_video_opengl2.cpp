@@ -15,10 +15,6 @@ using std::endl;
 int window_width = 640;
 int window_height = 480;
 
-// Frame counting and limiting
-int frame_count = 0;
-double frame_start_time, frame_end_time, frame_draw_time;
-
 // Function turn a cv::Mat into a texture, and return the texture ID as a GLuint for use
 static GLuint matToTexture(const cv::Mat &mat, GLenum minFilter, GLenum magFilter, GLenum wrapFilter) {
     // Generate a number for our textureID's unique handle
@@ -118,29 +114,6 @@ static void draw_frame(const cv::Mat &frame) {
     glDisable(GL_TEXTURE_2D);
 }
 
-void lock_frame_rate(double frame_rate) {
-    static double allowed_frame_time = 1.0 / frame_rate;
-
-    // Note: frame_start_time is called first thing in the main loop
-    frame_end_time = glfwGetTime();  // in seconds
-
-    frame_draw_time = frame_end_time - frame_start_time;
-
-    double sleep_time = 0.0;
-
-    if (frame_draw_time < allowed_frame_time) {
-        sleep_time = allowed_frame_time - frame_draw_time;
-        usleep(1000000 * sleep_time);
-    }
-
-    // Debug stuff
-    double potential_fps = 1.0 / frame_draw_time;
-    double locked_fps = 1.0 / (glfwGetTime() - frame_start_time);
-    cout << "Frame [" << frame_count << "] ";
-    cout << "Draw: " << frame_draw_time << " Sleep: " << sleep_time;
-    cout << " Pot. FPS: " << potential_fps << " Locked FPS: " << locked_fps << endl;
-}
-
 static void init_opengl(int w, int h) {
     glViewport(0, 0, w, h); // use a screen size of WIDTH x HEIGHT
 
@@ -155,28 +128,14 @@ static void init_opengl(int w, int h) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the window
 }
 
-int nmain() {
 
-    cv::VideoCapture capture(0);
-    if (!capture.isOpened()) {
-        cout << "Cannot open video: " << endl;
-        exit(EXIT_FAILURE);
-    }
+GLFWwindow *window;
 
-    double fps = 0.0;
-    fps = capture.get(cv::CAP_PROP_FPS);
-    if (fps != fps) { // NaN
-        fps = 25.0;
-    }
+bool shouldWindowClose() {
+    return glfwWindowShouldClose(window);
+}
 
-    cout << "FPS: " << fps << endl;
-
-    window_width = capture.get(cv::CAP_PROP_FRAME_WIDTH);
-    window_height = capture.get(cv::CAP_PROP_FRAME_HEIGHT);
-    cout << "Video width: " << window_width << endl;
-    cout << "Video height: " << window_height << endl;
-
-    GLFWwindow *window;
+void setup() {
 
     glfwSetErrorCallback(error_callback);
 
@@ -186,7 +145,7 @@ int nmain() {
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-    window = glfwCreateWindow(window_width, window_height, "Simple example", NULL, NULL);
+    window = glfwCreateWindow(window_width, window_height, "AR", NULL, NULL);
     if (!window) {
         glfwTerminate();
         exit(EXIT_FAILURE);
@@ -209,33 +168,46 @@ int nmain() {
 
     init_opengl(window_width, window_height);
 
-    double video_start_time = glfwGetTime();
-    double video_end_time = 0.0;
+}
 
-    cv::Mat frame;
-    while (!glfwWindowShouldClose(window)) {
-        frame_start_time = glfwGetTime();
-        if (!capture.read(frame)) {
-            cout << "Cannot grab a frame." << endl;
-            break;
-        }
+void update(cv::Mat frame) {
+    draw_frame(frame);
 
-        draw_frame(frame);
-        video_end_time = glfwGetTime();
+    glfwSwapBuffers(window);
+    glfwPollEvents();
+}
 
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-
-        ++frame_count;
-        lock_frame_rate(fps);
-    }
-
-    cout << "Total video time: " << video_end_time - video_start_time << " seconds" << endl;
-
+void terminate() {
     glfwDestroyWindow(window);
     glfwTerminate();
 
     exit(EXIT_SUCCESS);
+}
+
+int main() {
+
+    setup();
+    cv::VideoCapture capture(0);
+    if (!capture.isOpened()) {
+        cout << "Cannot open video: " << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    window_width = capture.get(cv::CAP_PROP_FRAME_WIDTH);
+    window_height = capture.get(cv::CAP_PROP_FRAME_HEIGHT);
+    cout << "Video width: " << window_width << endl;
+    cout << "Video height: " << window_height << endl;
+
+    cv::Mat frame;
+
+    while (!shouldWindowClose()) {
+        if (!capture.read(frame)) {
+            cout << "Cannot grab a frame." << endl;
+            break;
+        }
+        update(frame);
+    }
+    terminate();
 }
 
 

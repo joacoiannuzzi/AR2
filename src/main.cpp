@@ -131,7 +131,7 @@ void camera_tracking(const std::shared_ptr<openvslam::config> &cfg,
 }
 
 
-int main() {
+int nmain() {
 
     std::cout << "hello world" << std::endl;
 
