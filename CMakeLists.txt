@@ -56,6 +56,10 @@ find_package(GLEW REQUIRED)
 include_directories(${GLEW_INCLUDE_DIRS})
 link_libraries(${GLEW_LIBRARIES})
 
+find_package(glm REQUIRED)
+include_directories(${glm_INCLUDE_DIRS})
+link_libraries(${glm_LIBRARIES})
+
 
 target_link_libraries(${PROJECT_NAME}
         PUBLIC
@@ -75,6 +79,7 @@ target_link_libraries(${PROJECT_NAME}
 #        GLEW::GLEW
         ${GLEW_LIBRARIES}
         ${OPENGL_LIBRARIES}
+        ${glm_LIBRARIES}
         #        g2o::core
         #        g2o::stuff
         #        g2o::types_sba
