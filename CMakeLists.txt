@@ -4,7 +4,7 @@ project(open_gl_test)
 
 # Source files
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
-set(SOURCES "${SRC_DIR}/main.cpp" src/shader.h src/camera.h src/openvslam.cpp)
+set(SOURCES "${SRC_DIR}/main.cpp" src/shader.h src/camera.h src/drawer.h src/drawer2.h src/render_video_opengl.cpp src/drawer3.h)
 set(LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libraries")
 
 # Executable definition and properties
@@ -24,13 +24,13 @@ target_include_directories(${PROJECT_NAME} PRIVATE "${GLFW_DIR}/include")
 target_compile_definitions(${PROJECT_NAME} PRIVATE "GLFW_INCLUDE_NONE")
 
 # glad
-set(GLAD_DIR "${LIB_DIR}/glad")
-add_library("glad" "${GLAD_DIR}/src/glad.c")
-target_include_directories("glad" PRIVATE "${GLAD_DIR}/include")
-target_include_directories(${PROJECT_NAME} PRIVATE "${GLAD_DIR}/include")
+#set(GLAD_DIR "${LIB_DIR}/glad")
+#add_library("glad" "${GLAD_DIR}/src/glad.c")
+#target_include_directories("glad" PRIVATE "${GLAD_DIR}/include")
+#target_include_directories(${PROJECT_NAME} PRIVATE "${GLAD_DIR}/include")
 #target_link_libraries(${PROJECT_NAME} "glad" "${CMAKE_DL_LIBS}")
 
-add_library(STB_IMAGE "src/stb_image.cpp")
+add_library(STB_IMAGE "src/stb_image.cpp" src/drawer2.h)
 #target_link_libraries(${PROJECT_NAME} STB_IMAGE)
 
 # OpenCV
@@ -52,10 +52,15 @@ set(BoW_INCLUDE_DIR ${DBoW2_INCLUDE_DIRS})
 set(BoW_LIBRARY ${DBoW2_LIBS})
 target_compile_definitions(${PROJECT_NAME} PUBLIC USE_DBOW2)
 
+find_package(GLEW REQUIRED)
+include_directories(${GLEW_INCLUDE_DIRS})
+link_libraries(${GLEW_LIBRARIES})
+
+
 target_link_libraries(${PROJECT_NAME}
         PUBLIC
         "glfw" "${GLFW_LIBRARIES}"
-        "glad" "${CMAKE_DL_LIBS}"
+#        "glad" "${CMAKE_DL_LIBS}"
         STB_IMAGE
         Threads::Threads
         Eigen3::Eigen
@@ -65,22 +70,21 @@ target_link_libraries(${PROJECT_NAME}
         opencv_calib3d
         ${OpenCV_LIBS}
         ${openvslam_LIBS}
-        ${Pangolin_LIBRARIES}
-        ${GLEW_LIBRARIES}
-        "${CMAKE_DL_LIBS}"
-        glfw
         openvslam
-        g2o::core
-        g2o::stuff
-        g2o::types_sba
-        g2o::types_sim3
-        g2o::solver_dense
-        g2o::solver_eigen
-        g2o::solver_csparse
-        g2o::csparse_extension
-        ${CXSPARSE_LIBRARIES}
-        ${SUITESPARSE_LIBRARIES}
         ${BoW_LIBRARY}
-        PRIVATE
-        ${LAPACK_LIBRARIES}
+#        GLEW::GLEW
+        ${GLEW_LIBRARIES}
+        ${OPENGL_LIBRARIES}
+        #        g2o::core
+        #        g2o::stuff
+        #        g2o::types_sba
+        #        g2o::types_sim3
+        #        g2o::solver_dense
+        #        g2o::solver_eigen
+        #        g2o::solver_csparse
+        #        g2o::csparse_extension
+        #        ${CXSPARSE_LIBRARIES}
+        #        ${SUITESPARSE_LIBRARIES}
+#        PRIVATE
+#        ${LAPACK_LIBRARIES}
         )

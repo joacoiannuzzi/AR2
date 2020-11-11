@@ -1,13 +1,14 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-#include <glad/glad.h>
+//#include <glad/glad.h>
 #include <glm/glm.hpp>
 
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <GL/glew.h>
 
 class Shader {
 public:
@@ -26,6 +27,7 @@ public:
         std::ifstream vShaderFile;
         std::ifstream fShaderFile;
         std::ifstream gShaderFile;
+
         // ensure ifstream objects can throw exceptions:
         vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
         fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
