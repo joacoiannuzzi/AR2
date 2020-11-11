@@ -92,8 +92,6 @@ void camera_tracking(const std::shared_ptr<openvslam::config> &cfg,
 
             drawer.update(frame, pose);
 
-
-
             const auto tp_2 = std::chrono::steady_clock::now();
 
             const auto track_time = std::chrono::duration_cast<std::chrono::duration<double>>(tp_2 - tp_1).count();

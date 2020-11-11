@@ -176,54 +176,53 @@ private:
 
     }
 
-    template<typename T, int m, int n>
-    inline glm::mat<m, n, float, glm::precision::highp> E2GLM(const Eigen::Matrix<T, m, n> &em) {
-        glm::mat<m, n, float, glm::precision::highp> mat;
-        for (int i = 0; i < m; ++i) {
-            for (int j = 0; j < n; ++j) {
-                mat[j][i] = em(i, j);
-            }
-        }
-        return mat;
-    }
+//    template<typename T, int m, int n>
+//    inline glm::mat<m, n, float, glm::precision::highp> E2GLM(const Eigen::Matrix<T, m, n> &em) {
+//        glm::mat<m, n, float, glm::precision::highp> mat;
+//        for (int i = 0; i < m; ++i) {
+//            for (int j = 0; j < n; ++j) {
+//                mat[j][i] = em(i, j);
+//            }
+//        }
+//        return mat;
+//    }
 
-    void drawAugmentedScene(openvslam::Mat44_t &pose) {
-
-        cout << "Starting to draw models" << endl;
-
-        // activate shader
-        ourShader->use();
-
-        // pass projection matrix to shader (note that in this case it could change every frame)
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float) window_width / (float) window_height,
-                                                0.1f,
-                                                100.0f);
-        ourShader->setMat4("projection", projection);
-
-        // camera/view transformation
-        glm::mat4 view = E2GLM(pose);
-
-//        cout << "view matrix: " << pose << endl;
-
-        ourShader->setMat4("view", view);
-
-        // render boxes
-        glBindVertexArray(VAO);
-        for (unsigned int i = 0; i < 10; i++) {
-            // calculate the model matrix for each object and pass it to shader before drawing
-            glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-            model = glm::translate(model, cubePositions[i]);
-            float angle = 20.0f * i;
-            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-            ourShader->setMat4("model", model);
-
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
-
-        cout << "Finished drawing models" << endl;
-
-
-    }
+//    void drawAugmentedScene(openvslam::Mat44_t &pose) {
+//
+//        cout << "Starting to draw models" << endl;
+//
+//        // activate shader
+//        ourShader->use();
+//
+//        // pass projection matrix to shader (note that in this case it could change every frame)
+//        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float) window_width / (float) window_height,
+//                                                0.1f,
+//                                                100.0f);
+//        ourShader->setMat4("projection", projection);
+//
+//        // camera/view transformation
+//        glm::mat4 view = E2GLM(pose);
+//
+////        cout << "view matrix: " << pose << endl;
+//
+//        ourShader->setMat4("view", view);
+//
+//        // render boxes
+//        glBindVertexArray(VAO);
+//        for (unsigned int i = 0; i < 10; i++) {
+//            // calculate the model matrix for each object and pass it to shader before drawing
+//            glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+//            model = glm::translate(model, cubePositions[i]);
+//            float angle = 20.0f * i;
+//            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+//            ourShader->setMat4("model", model);
+//
+//            glDrawArrays(GL_TRIANGLES, 0, 36);
+//        }
+//
+//        cout << "Finished drawing models" << endl;
+//
+//    }
 
 public:
     Drawer3(int window_width, int window_height) {
@@ -392,7 +391,7 @@ public:
 //        frame_start_time = glfwGetTime();
 
         draw_frame(frame);
-        drawAugmentedScene(pose);
+//        drawAugmentedScene(pose);
 
 //        video_end_time = glfwGetTime();
 
