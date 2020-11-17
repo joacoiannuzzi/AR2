@@ -5,7 +5,9 @@
 #include <iostream>
 
 #include <GL/glew.h>
+
 #define GLFW_INCLUDE_GLU
+
 #include <GLFW/glfw3.h>
 
 #include "openvslam/system.h"
@@ -120,6 +122,16 @@ static void resize_callback(GLFWwindow *window, int new_width, int new_height) {
     glMatrixMode(GL_MODELVIEW);
 }
 
+template<typename T, int m, int n>
+glm::mat<m, n, float, glm::precision::highp> E2GLM(const Eigen::Matrix<T, m, n> &em) {
+    glm::mat<m, n, float, glm::precision::highp> mat;
+    for (int i = 0; i < m; ++i) {
+        for (int j = 0; j < n; ++j) {
+            mat[j][i] = em(i, j);
+        }
+    }
+    return mat;
+}
 
 static void init_opengl() {
     glViewport(0, 0, window_width, window_height); // use a screen size of WIDTH x HEIGHT
@@ -166,7 +178,7 @@ static void draw_frame(const cv::Mat &frame) {
     glDisable(GL_TEXTURE_2D);
 }
 
-void drawCube() {
+void drawCube(openvslam::Mat44_t &pose) {
 
     glEnable(GL_DEPTH_TEST); // Depth Testing
 //    glDepthFunc(GL_LEQUAL);
@@ -178,7 +190,13 @@ void drawCube() {
     gluPerspective(60, (double) window_width / (double) window_height, 0.1, 100);
 
     glMatrixMode(GL_MODELVIEW_MATRIX);
-    glTranslatef(0, 0, -5);
+    glLoadIdentity();
+//    glTranslatef(0, 0, -5);
+//    glLoadMatrixf(reinterpret_cast<const GLfloat *>(&pose(0)));
+
+    auto view = E2GLM(pose);
+    glLoadMatrixf(reinterpret_cast<const GLfloat *>(&view[0]));
+
 
     GLfloat vertices[] =
             {
@@ -219,16 +237,6 @@ void drawCube() {
     alpha += 1;
 }
 
-template<typename T, int m, int n>
-glm::mat<m, n, float, glm::precision::highp> E2GLM(const Eigen::Matrix<T, m, n> &em) {
-    glm::mat<m, n, float, glm::precision::highp> mat;
-    for (int i = 0; i < m; ++i) {
-        for (int j = 0; j < n; ++j) {
-            mat[j][i] = em(i, j);
-        }
-    }
-    return mat;
-}
 
 void drawAugmentedScene(openvslam::Mat44_t &pose) {
 
@@ -395,7 +403,7 @@ void update(cv::Mat &frame, openvslam::Mat44_t &pose) {
     draw_frame(frame);
 //    drawAugmentedScene(pose);
 
-    drawCube();
+    drawCube(pose);
 ////////////////////
     glfwSwapBuffers(window);
     glfwPollEvents();
