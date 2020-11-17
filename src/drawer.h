@@ -209,6 +209,7 @@ public:
             glfwTerminate();
             return;
         }
+
         glfwMakeContextCurrent(window);
         glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 //        glfwSetCursorPosCallback(window, mouse_callback);

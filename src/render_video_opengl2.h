@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include <GL/glew.h>
+#define GLFW_INCLUDE_GLU
 #include <GLFW/glfw3.h>
 
 #include "openvslam/system.h"
@@ -26,6 +27,23 @@ GLFWwindow *window;
 std::shared_ptr<Shader> ourShader;
 
 unsigned int VBO, VAO;
+
+//glm::vec3 *cubePositions;
+
+const unsigned int cubesQuantitiy = 1;
+
+glm::vec3 cubePositions[cubesQuantitiy] = {
+        glm::vec3(0.0f, 0.0f, 0.0f)
+//        glm::vec3(2.0f, 5.0f, -15.0f),
+//        glm::vec3(-1.5f, -2.2f, -2.5f),
+//        glm::vec3(-3.8f, -2.0f, -12.3f),
+//        glm::vec3(2.4f, -0.4f, -3.5f),
+//        glm::vec3(-1.7f, 3.0f, -7.5f),
+//        glm::vec3(1.3f, -2.0f, -2.5f),
+//        glm::vec3(1.5f, 2.0f, -2.5f),
+//        glm::vec3(1.5f, 0.2f, -1.5f),
+//        glm::vec3(-1.3f, 1.0f, -1.5f)
+};
 
 // Function turn a cv::Mat into a texture, and return the texture ID as a GLuint for use
 static GLuint matToTexture(const cv::Mat &mat, GLenum minFilter, GLenum magFilter, GLenum wrapFilter) {
@@ -102,10 +120,32 @@ static void resize_callback(GLFWwindow *window, int new_width, int new_height) {
     glMatrixMode(GL_MODELVIEW);
 }
 
+
+static void init_opengl() {
+    glViewport(0, 0, window_width, window_height); // use a screen size of WIDTH x HEIGHT
+
+    glMatrixMode(GL_PROJECTION_MATRIX);     // Make a simple 2D projection on the entire window
+    glLoadIdentity();
+    glOrtho(0.0, window_width, window_height, 0.0, 0.0, 100.0);
+
+    glMatrixMode(GL_MODELVIEW_MATRIX);    // Set the matrix mode to object modeling
+
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClearDepth(0.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the window
+}
+
 static void draw_frame(const cv::Mat &frame) {
-    // Clear color and depth buffers
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glMatrixMode(GL_MODELVIEW);     // Operate on model-view matrix
+    glDisable(GL_DEPTH_TEST);
+    ourShader->disable();
+//    frame_setup();
+//    init_opengl();
+
+    glMatrixMode(GL_PROJECTION_MATRIX);     // Make a simple 2D projection on the entire window
+    glLoadIdentity();
+    glOrtho(0.0, window_width, window_height, 0.0, 0.0, 100.0);
+
+    glMatrixMode(GL_MODELVIEW_MATRIX); // Operate on model-view matrix
 
     glEnable(GL_TEXTURE_2D);
     GLuint image_tex = matToTexture(frame, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_CLAMP);
@@ -126,18 +166,57 @@ static void draw_frame(const cv::Mat &frame) {
     glDisable(GL_TEXTURE_2D);
 }
 
-static void init_opengl(int w, int h) {
-    glViewport(0, 0, w, h); // use a screen size of WIDTH x HEIGHT
+void drawCube() {
 
-    glMatrixMode(GL_PROJECTION);     // Make a simple 2D projection on the entire window
+    glEnable(GL_DEPTH_TEST); // Depth Testing
+//    glDepthFunc(GL_LEQUAL);
+//    glDisable(GL_CULL_FACE);
+//    glCullFace(GL_BACK);
+
+    glMatrixMode(GL_PROJECTION_MATRIX);
     glLoadIdentity();
-    glOrtho(0.0, w, h, 0.0, 0.0, 100.0);
+    gluPerspective(60, (double) window_width / (double) window_height, 0.1, 100);
 
-    glMatrixMode(GL_MODELVIEW);    // Set the matrix mode to object modeling
+    glMatrixMode(GL_MODELVIEW_MATRIX);
+    glTranslatef(0, 0, -5);
 
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glClearDepth(0.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the window
+    GLfloat vertices[] =
+            {
+                    -1, -1, -1, -1, -1, 1, -1, 1, 1, -1, 1, -1,
+                    1, -1, -1, 1, -1, 1, 1, 1, 1, 1, 1, -1,
+                    -1, -1, -1, -1, -1, 1, 1, -1, 1, 1, -1, -1,
+                    -1, 1, -1, -1, 1, 1, 1, 1, 1, 1, 1, -1,
+                    -1, -1, -1, -1, 1, -1, 1, 1, -1, 1, -1, -1,
+                    -1, -1, 1, -1, 1, 1, 1, 1, 1, 1, -1, 1
+            };
+
+    GLfloat colors[] =
+            {
+                    0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0,
+                    1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0,
+                    0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0,
+                    0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0,
+                    0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0,
+                    0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1
+            };
+
+    static float alpha = 0;
+    //attempt to rotate cube
+    glRotatef(alpha, 0, 1, 0);
+
+    /* We have a color array and a vertex array */
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+    glVertexPointer(3, GL_FLOAT, 0, vertices);
+    glColorPointer(3, GL_FLOAT, 0, colors);
+
+    /* Send data : 24 vertices */
+    glDrawArrays(GL_QUADS, 0, 24);
+
+    /* Cleanup states */
+    glDisableClientState(GL_COLOR_ARRAY);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    alpha += 1;
 }
 
 template<typename T, int m, int n>
@@ -153,13 +232,16 @@ glm::mat<m, n, float, glm::precision::highp> E2GLM(const Eigen::Matrix<T, m, n> 
 
 void drawAugmentedScene(openvslam::Mat44_t &pose) {
 
-    cout << "Starting to draw models" << endl;
+    glEnable(GL_DEPTH_TEST);
+
+//    cout << "Starting to draw models" << endl;
 
     // activate shader
     ourShader->use();
 
     // pass projection matrix to shader (note that in this case it could change every frame)
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float) window_width / (float) window_height,
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f),
+                                            (float) window_width / (float) window_height,
                                             0.1f,
                                             100.0f);
     ourShader->setMat4("projection", projection);
@@ -167,13 +249,13 @@ void drawAugmentedScene(openvslam::Mat44_t &pose) {
     // camera/view transformation
     glm::mat4 view = E2GLM(pose);
 
-//        cout << "view matrix: " << pose << endl;
+    cout << "view matrix: " << pose << endl;
 
     ourShader->setMat4("view", view);
 
     // render boxes
     glBindVertexArray(VAO);
-    for (unsigned int i = 0; i < 10; i++) {
+    for (unsigned int i = 0; i < cubesQuantitiy; i++) {
         // calculate the model matrix for each object and pass it to shader before drawing
         glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
         model = glm::translate(model, cubePositions[i]);
@@ -181,10 +263,12 @@ void drawAugmentedScene(openvslam::Mat44_t &pose) {
         model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
         ourShader->setMat4("model", model);
 
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDrawArrays(GL_TRIANGLES, 0, 36); // 36 vertices
     }
 
-    cout << "Finished drawing models" << endl;
+//    cout << "Finished drawing models" << endl;
+
+    ourShader->disable();
 
 }
 
@@ -192,6 +276,77 @@ void drawAugmentedScene(openvslam::Mat44_t &pose) {
 bool shouldWindowClose() {
     return glfwWindowShouldClose(window);
 }
+
+void setupModel() {
+
+    ourShader = std::make_shared<Shader>("cam_vertex.vs", "cam_fragment.fs");
+
+    float vertices[180] = {
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+            0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
+            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+
+            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+            0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+            0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+            -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
+            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+
+            -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+            -0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+            -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+
+            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+            0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+            0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+            0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+            0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
+            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+
+            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
+            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+            -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
+            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f
+    };
+
+
+    glGenVertexArrays(1, &VAO);
+
+    std::cout << "LOG :: glGenVertexArrays SUCCESS" << std::endl;
+
+    glGenBuffers(1, &VBO);
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
+    glEnableVertexAttribArray(0);
+    // texture coord attribute
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) (3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+//    ourShader->use();
+}
+
 
 void setup() {
 
@@ -203,6 +358,7 @@ void setup() {
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+
     window = glfwCreateWindow(window_width, window_height, "AR", NULL, NULL);
     if (!window) {
         glfwTerminate();
@@ -224,13 +380,23 @@ void setup() {
     }
     cout << "GLEW okay - using version: " << glewGetString(GLEW_VERSION) << endl;
 
-    init_opengl(window_width, window_height);
+//    setupModel();
+
+    glViewport(0, 0, window_width, window_height); // use a screen size of WIDTH x HEIGHT
+
+//    init_opengl();
 
 }
 
-void update(cv::Mat &frame, openvslam::Mat44_t &pose) {
-    draw_frame(frame);
 
+void update(cv::Mat &frame, openvslam::Mat44_t &pose) {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+////////////////////
+    draw_frame(frame);
+//    drawAugmentedScene(pose);
+
+    drawCube();
+////////////////////
     glfwSwapBuffers(window);
     glfwPollEvents();
 }
@@ -241,6 +407,7 @@ void terminate() {
 
     exit(EXIT_SUCCESS);
 }
+
 
 //int nmain() {
 //
