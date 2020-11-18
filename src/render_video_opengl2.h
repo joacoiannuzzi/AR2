@@ -156,9 +156,6 @@ static void draw_frame(const cv::Mat &frame) {
 //0            0  6.9531e-310 4.66885e-310
 
 
-//glm::mat4 *initial_pose;
-std::shared_ptr<openvslam::Mat44_t> initial_pose = nullptr;
-
 Eigen::Matrix4d glmToEigen(const glm::highp_dmat4 &v) {
     Eigen::Matrix4d result;
     for (size_t i = 0; i < 4; ++i) {
@@ -172,14 +169,6 @@ Eigen::Matrix4d glmToEigen(const glm::highp_dmat4 &v) {
 
 void drawCube(openvslam::Mat44_t &pose) {
 
-//    if (initial_pose == nullptr) {
-//        initial_pose = std::make_shared<openvslam::Mat44_t>(pose);
-//        cout << "[[ENTER]] -- MEM INITIAL POSE: " << initial_pose << endl;
-//        cout << "[[ENTER]] -- INITIAL POSE: " << *initial_pose << endl;
-//        return;
-//    }
-
-
     glEnable(GL_DEPTH_TEST); // Depth Testing
 
     glMatrixMode(GL_PROJECTION_MATRIX);
@@ -187,9 +176,14 @@ void drawCube(openvslam::Mat44_t &pose) {
     gluPerspective(45, (double) window_width / (double) window_height, 0.1, 100);
 
     glMatrixMode(GL_MODELVIEW_MATRIX);
+//    glTranslatef(0, 0, -10);
+
+    static float alpha = 0;
+    //attempt to rotate cube
+//    glRotatef(alpha, 0, 1, 0);
 
     glm::highp_dmat4 model = glm::highp_dmat4(1.0f);
-    model = glm::translate(model, glm::highp_dvec3(0.01, 0.01, -5));
+    model = glm::translate(model, glm::highp_dvec3(0, 0, -10));
 
     const Eigen::Matrix4d eigen_model = glmToEigen(model);
 
@@ -221,9 +215,7 @@ void drawCube(openvslam::Mat44_t &pose) {
                     0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1
             };
 
-    static float alpha = 0;
-    //attempt to rotate cube
-    glRotatef(alpha, 0, 1, 0);
+
 
     /* We have a color array and a vertex array */
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -289,7 +281,6 @@ void update(cv::Mat &frame, openvslam::Mat44_t &pose) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 ////////////////////
     draw_frame(frame);
-
 
     drawCube(pose);
 ////////////////////

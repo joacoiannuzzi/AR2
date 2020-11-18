@@ -37,7 +37,7 @@ int window_height = 480;
 unsigned int texture1, texture2;
 unsigned int VBO, VAO;
 
-glm::vec3 cubePositions[10] = {
+glm::vec3 cubePositions[] = {
         glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(2.0f, 5.0f, -15.0f),
         glm::vec3(-1.5f, -2.2f, -2.5f),
@@ -168,7 +168,6 @@ inline glm::mat<m, n, float, glm::precision::highp> E2GLM(const Eigen::Matrix<T,
 
 void drawAugmentedScene(openvslam::Mat44_t &pose) {
     glEnable(GL_DEPTH_TEST); // Depth Testing
-
 
     cout << "Starting to draw models" << endl;
 

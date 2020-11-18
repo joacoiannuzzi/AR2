@@ -10,7 +10,7 @@
 #include <numeric>
 
 #include "drawer3.h"
-
+//#include "render_video_opengl2.h"
 
 void camera_tracking(const std::shared_ptr<openvslam::config> &cfg,
                      const std::string &vocab_file_path, const unsigned int cam_num, const std::string &mask_img_path,
