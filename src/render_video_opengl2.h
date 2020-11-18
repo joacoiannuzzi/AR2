@@ -15,9 +15,12 @@
 
 #include <opencv2/opencv.hpp>
 #include <Eigen/src/Core/Matrix.h>
-#include <glm/detail/qualifier.hpp>
-#include <glm/detail/type_mat4x2.hpp>
-#include <glm/ext.hpp>
+#include <glm/glm.hpp>
+//#include <glm/detail/qualifier.hpp>
+//#include <glm/detail/type_mat4x2.hpp>
+//#include <glm/ext.hpp>
+#include <glm/gtx/string_cast.hpp>
+
 
 using std::cout;
 using std::endl;
@@ -26,26 +29,6 @@ int window_width = 640;
 int window_height = 480;
 
 GLFWwindow *window;
-std::shared_ptr<Shader> ourShader;
-
-unsigned int VBO, VAO;
-
-//glm::vec3 *cubePositions;
-
-const unsigned int cubesQuantitiy = 1;
-
-glm::vec3 cubePositions[cubesQuantitiy] = {
-        glm::vec3(0.0f, 0.0f, 0.0f)
-//        glm::vec3(2.0f, 5.0f, -15.0f),
-//        glm::vec3(-1.5f, -2.2f, -2.5f),
-//        glm::vec3(-3.8f, -2.0f, -12.3f),
-//        glm::vec3(2.4f, -0.4f, -3.5f),
-//        glm::vec3(-1.7f, 3.0f, -7.5f),
-//        glm::vec3(1.3f, -2.0f, -2.5f),
-//        glm::vec3(1.5f, 2.0f, -2.5f),
-//        glm::vec3(1.5f, 0.2f, -1.5f),
-//        glm::vec3(-1.3f, 1.0f, -1.5f)
-};
 
 // Function turn a cv::Mat into a texture, and return the texture ID as a GLuint for use
 static GLuint matToTexture(const cv::Mat &mat, GLenum minFilter, GLenum magFilter, GLenum wrapFilter) {
@@ -133,25 +116,9 @@ glm::mat<m, n, float, glm::precision::highp> E2GLM(const Eigen::Matrix<T, m, n> 
     return mat;
 }
 
-static void init_opengl() {
-    glViewport(0, 0, window_width, window_height); // use a screen size of WIDTH x HEIGHT
-
-    glMatrixMode(GL_PROJECTION_MATRIX);     // Make a simple 2D projection on the entire window
-    glLoadIdentity();
-    glOrtho(0.0, window_width, window_height, 0.0, 0.0, 100.0);
-
-    glMatrixMode(GL_MODELVIEW_MATRIX);    // Set the matrix mode to object modeling
-
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glClearDepth(0.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the window
-}
-
 static void draw_frame(const cv::Mat &frame) {
     glDisable(GL_DEPTH_TEST);
-    ourShader->disable();
-//    frame_setup();
-//    init_opengl();
+
 
     glMatrixMode(GL_PROJECTION_MATRIX);     // Make a simple 2D projection on the entire window
     glLoadIdentity();
@@ -178,25 +145,80 @@ static void draw_frame(const cv::Mat &frame) {
     glDisable(GL_TEXTURE_2D);
 }
 
+//4.66885e-310
+//9.48606e-321
+//1.4822e-323
+//4.66885e-310
+
+//0            0            0 9.48606e-321
+//3.83472e-314            0            0  1.4822e-323
+//4.79933e-314            0  6.9531e-310            0
+//0            0  6.9531e-310 4.66885e-310
+
+
+//glm::mat4 *initial_pose;
+std::shared_ptr<openvslam::Mat44_t> initial_pose = nullptr;
+
+Eigen::Matrix4d glmToEigen(const glm::highp_dmat4 &v) {
+    Eigen::Matrix4d result;
+    for (size_t i = 0; i < 4; ++i) {
+        for (size_t j = 0; j < 4; ++j) {
+            result(j, i) = v[i][j];
+        }
+    }
+
+    return result;
+}
+
 void drawCube(openvslam::Mat44_t &pose) {
 
+//    if (initial_pose == nullptr) {
+//        initial_pose = std::make_shared<openvslam::Mat44_t>(pose);
+//        cout << "[[ENTER]] -- MEM INITIAL POSE: " << initial_pose << endl;
+//        cout << "[[ENTER]] -- INITIAL POSE: " << *initial_pose << endl;
+//        return;
+//    }
+
+//    openvslam::Mat44_t mat(0.000000000000000005, 0.000000000000000005, 0.000000000000000005, 1);
+
+//    glm::highp_dmat4 model = glm::highp_dmat4(1.0f);
+//    model = glm::translate(model, glm::highp_dvec3(1, 0.1, 0.1));
+//
+//    const Eigen::Matrix4d eigen_model = glmToEigen(model);
+
+//    cout << eigen_model << endl;
+
+//    const auto model_view = (pose * 99999999999999999) * eigen_model;
+//
+//    cout << model_view << endl;
+
     glEnable(GL_DEPTH_TEST); // Depth Testing
-//    glDepthFunc(GL_LEQUAL);
-//    glDisable(GL_CULL_FACE);
-//    glCullFace(GL_BACK);
 
     glMatrixMode(GL_PROJECTION_MATRIX);
     glLoadIdentity();
-    gluPerspective(60, (double) window_width / (double) window_height, 0.1, 100);
+    gluPerspective(100, (double) window_width / (double) window_height, 0.1, 100);
 
     glMatrixMode(GL_MODELVIEW_MATRIX);
-    glLoadIdentity();
-//    glTranslatef(0, 0, -5);
-//    glLoadMatrixf(reinterpret_cast<const GLfloat *>(&pose(0)));
+//    const double d = pose(0);
+//    glLoadMatrixd(&d);
+    glTranslatef(0, 0, -10);
 
-    auto view = E2GLM(pose);
-    glLoadMatrixf(reinterpret_cast<const GLfloat *>(&view[0]));
+//    glm::highp_dmat4 model = glm::highp_dmat4(1.0f);
+//    model = glm::translate(model, glm::highp_dvec3(0.000000000000000005, 0.000000000000000005, 0.000000000000000005));
 
+//    glm::mat4 model_view = E2GLM(pose);
+//    const auto model_view = pose * (*initial_pose);
+
+//    cout << "MODEL VIEW: -- " << model_view << endl;
+
+//    glLoadIdentity();
+//    const double d = model_view(0);
+//    glLoadMatrixd(&d);
+
+//    auto view = E2GLM(pose);
+//    glLoadMatrixf(reinterpret_cast<const GLfloat *>(&view[0]));
+
+//    std::cout << pose << std::endl;
 
     GLfloat vertices[] =
             {
@@ -238,121 +260,8 @@ void drawCube(openvslam::Mat44_t &pose) {
 }
 
 
-void drawAugmentedScene(openvslam::Mat44_t &pose) {
-
-    glEnable(GL_DEPTH_TEST);
-
-//    cout << "Starting to draw models" << endl;
-
-    // activate shader
-    ourShader->use();
-
-    // pass projection matrix to shader (note that in this case it could change every frame)
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f),
-                                            (float) window_width / (float) window_height,
-                                            0.1f,
-                                            100.0f);
-    ourShader->setMat4("projection", projection);
-
-    // camera/view transformation
-    glm::mat4 view = E2GLM(pose);
-
-    cout << "view matrix: " << pose << endl;
-
-    ourShader->setMat4("view", view);
-
-    // render boxes
-    glBindVertexArray(VAO);
-    for (unsigned int i = 0; i < cubesQuantitiy; i++) {
-        // calculate the model matrix for each object and pass it to shader before drawing
-        glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-        model = glm::translate(model, cubePositions[i]);
-        float angle = 20.0f * i;
-        model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-        ourShader->setMat4("model", model);
-
-        glDrawArrays(GL_TRIANGLES, 0, 36); // 36 vertices
-    }
-
-//    cout << "Finished drawing models" << endl;
-
-    ourShader->disable();
-
-}
-
-
 bool shouldWindowClose() {
     return glfwWindowShouldClose(window);
-}
-
-void setupModel() {
-
-    ourShader = std::make_shared<Shader>("cam_vertex.vs", "cam_fragment.fs");
-
-    float vertices[180] = {
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-            0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-
-            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-            0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-            0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-            -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-
-            -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-            -0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-            -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-
-            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-            0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
-            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-
-            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-            -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
-            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f
-    };
-
-
-    glGenVertexArrays(1, &VAO);
-
-    std::cout << "LOG :: glGenVertexArrays SUCCESS" << std::endl;
-
-    glGenBuffers(1, &VBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
-    glEnableVertexAttribArray(0);
-    // texture coord attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) (3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-//    ourShader->use();
 }
 
 
@@ -388,11 +297,9 @@ void setup() {
     }
     cout << "GLEW okay - using version: " << glewGetString(GLEW_VERSION) << endl;
 
-//    setupModel();
 
     glViewport(0, 0, window_width, window_height); // use a screen size of WIDTH x HEIGHT
 
-//    init_opengl();
 
 }
 
@@ -401,7 +308,7 @@ void update(cv::Mat &frame, openvslam::Mat44_t &pose) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 ////////////////////
     draw_frame(frame);
-//    drawAugmentedScene(pose);
+
 
     drawCube(pose);
 ////////////////////

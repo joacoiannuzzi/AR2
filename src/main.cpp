@@ -29,17 +29,10 @@ void camera_tracking(const std::shared_ptr<openvslam::config> &cfg,
     std::cout << "LOG :: SLAM INITIALIZED" << std::endl;
 
 
-    // create a viewer object
-    // and pass the frame_publisher and the map_publisher
-
-//    pangolin_viewer::viewer viewer(cfg, &SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
-
-
-
 
     auto video = cv::VideoCapture(cam_num);
 //    auto video = cv::VideoCapture(
-//            "udpsrc port=5000 caps=\"application/x-rtp\" ! rtph264depay ! avdec_h264 ! appsink",
+//            "./resources/video.mp4",
 //            cv::CAP_FFMPEG
 //    );
 
@@ -91,7 +84,7 @@ void camera_tracking(const std::shared_ptr<openvslam::config> &cfg,
         // input the current currentFrame and estimate the camera pose
         auto pose = SLAM.feed_monocular_frame(frame, timestamp, mask);
 
-//            std::cout << "pose: " << pose << std::endl;
+        std::cout << "pose: " << pose << std::endl;
 
         update(frame, pose);
 
