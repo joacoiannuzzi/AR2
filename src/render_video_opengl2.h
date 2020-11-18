@@ -179,46 +179,27 @@ void drawCube(openvslam::Mat44_t &pose) {
 //        return;
 //    }
 
-//    openvslam::Mat44_t mat(0.000000000000000005, 0.000000000000000005, 0.000000000000000005, 1);
-
-//    glm::highp_dmat4 model = glm::highp_dmat4(1.0f);
-//    model = glm::translate(model, glm::highp_dvec3(1, 0.1, 0.1));
-//
-//    const Eigen::Matrix4d eigen_model = glmToEigen(model);
-
-//    cout << eigen_model << endl;
-
-//    const auto model_view = (pose * 99999999999999999) * eigen_model;
-//
-//    cout << model_view << endl;
 
     glEnable(GL_DEPTH_TEST); // Depth Testing
 
     glMatrixMode(GL_PROJECTION_MATRIX);
     glLoadIdentity();
-    gluPerspective(100, (double) window_width / (double) window_height, 0.1, 100);
+    gluPerspective(45, (double) window_width / (double) window_height, 0.1, 100);
 
     glMatrixMode(GL_MODELVIEW_MATRIX);
-//    const double d = pose(0);
-//    glLoadMatrixd(&d);
-    glTranslatef(0, 0, -10);
 
-//    glm::highp_dmat4 model = glm::highp_dmat4(1.0f);
-//    model = glm::translate(model, glm::highp_dvec3(0.000000000000000005, 0.000000000000000005, 0.000000000000000005));
+    glm::highp_dmat4 model = glm::highp_dmat4(1.0f);
+    model = glm::translate(model, glm::highp_dvec3(0.01, 0.01, -5));
 
-//    glm::mat4 model_view = E2GLM(pose);
-//    const auto model_view = pose * (*initial_pose);
+    const Eigen::Matrix4d eigen_model = glmToEigen(model);
 
-//    cout << "MODEL VIEW: -- " << model_view << endl;
+    const auto model_view = pose * eigen_model;
 
-//    glLoadIdentity();
-//    const double d = model_view(0);
-//    glLoadMatrixd(&d);
+    cout << model_view << endl;
 
-//    auto view = E2GLM(pose);
-//    glLoadMatrixf(reinterpret_cast<const GLfloat *>(&view[0]));
+    const double d = model_view(0);
+    glLoadMatrixd(&d);
 
-//    std::cout << pose << std::endl;
 
     GLfloat vertices[] =
             {

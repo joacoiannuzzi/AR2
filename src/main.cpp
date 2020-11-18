@@ -1,6 +1,3 @@
-//#include "main.h"
-
-//#include "drawer3.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -12,7 +9,7 @@
 #include <openvslam/config.h>
 #include <numeric>
 
-#include "render_video_opengl2.h"
+#include "drawer3.h"
 
 
 void camera_tracking(const std::shared_ptr<openvslam::config> &cfg,

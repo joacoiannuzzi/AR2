@@ -4,8 +4,8 @@ project(open_gl_test)
 
 # Source files
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
-set(SOURCES "${SRC_DIR}/main.cpp" src/shader.h src/camera.h
-        src/drawer.h src/drawer2.h src/drawer3.h src/render_video_opengl2.h)
+set(SOURCES "${SRC_DIR}/main.cpp" src/shader.h
+        src/drawer3.h #[[src/render_video_opengl2.h]])
 set(LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libraries")
 
 # Executable definition and properties
@@ -31,7 +31,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE "GLFW_INCLUDE_NONE")
 #target_include_directories(${PROJECT_NAME} PRIVATE "${GLAD_DIR}/include")
 #target_link_libraries(${PROJECT_NAME} "glad" "${CMAKE_DL_LIBS}")
 
-add_library(STB_IMAGE "src/stb_image.cpp" src/drawer2.h)
+add_library(STB_IMAGE "src/stb_image.cpp")
 #target_link_libraries(${PROJECT_NAME} STB_IMAGE)
 
 # OpenCV
